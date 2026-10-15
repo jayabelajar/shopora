@@ -1,0 +1,17 @@
+{
+  "name": "shopora",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Shopora single-vendor e-commerce monorepo",
+  "workspaces": ["apps/*"],
+  "scripts": {
+    "dev": "concurrently -n web,api -c cyan,magenta \"npm run dev -w @shopora/web\" \"npm run dev -w @shopora/api\"",
+    "build": "npm run build -w @shopora/web && npm run build -w @shopora/api",
+    "test": "npm run test -w @shopora/api && npm run test -w @shopora/web",
+    "db:generate": "npm run prisma:generate -w @shopora/api",
+    "db:migrate": "npm run prisma:migrate -w @shopora/api",
+    "db:seed": "npm run prisma:seed -w @shopora/api"
+  },
+  "devDependencies": { "concurrently": "^9.1.2" }
+}
+

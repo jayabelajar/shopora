@@ -1,0 +1,1366 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-stone-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopora — Premium E-Commerce Experience</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            800: '#1e293b',
+                            900: '#0f172a',
+                            950: '#020617',
+                        },
+                        accent: {
+                            DEFAULT: '#0f172a',
+                            hover: '#1e293b'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* Smooth Fade Transitions */
+        .page-view { display: none; opacity: 0; transition: opacity 0.2s ease-in-out; }
+        .page-view.active { display: block; opacity: 1; }
+        
+        /* Drawer animation support */
+        .drawer-overlay { transition: opacity 0.3s ease-in-out; }
+        .drawer-content { transition: transform 0.3s ease-in-out; }
+    </style>
+</head>
+<body class="h-full text-slate-800 flex flex-col antialiased selection:bg-slate-900 selection:text-white">
+
+    <!-- ANNOUNCEMENT BAR -->
+    <div id="announcement-bar" class="bg-slate-950 text-slate-300 text-xs py-2 px-4 text-center tracking-wide flex justify-between items-center px-6 border-b border-slate-800">
+        <div class="hidden md:block w-32"></div>
+        <p class="font-light">Complimentary express shipping on all orders above <span class="font-semibold text-white">Rp 1.500.000</span></p>
+        <div class="flex items-center space-x-4 text-xs">
+            <button onclick="toggleView('admin-dashboard')" class="text-slate-400 hover:text-white transition flex items-center gap-1">
+                <i data-lucide="layout-dashboard" class="w-3.5 h-3.5"></i>
+                <span>Admin View</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- MAIN NAVBAR -->
+    <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-stone-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                
+                <!-- Mobile Menu Button -->
+                <button onclick="toggleMobileMenu()" class="md:hidden p-2 text-slate-600 hover:text-slate-900">
+                    <i data-lucide="menu" class="w-6 h-6"></i>
+                </button>
+
+                <!-- Brand Logo -->
+                <div class="flex items-center gap-8">
+                    <a href="#" onclick="toggleView('storefront-home')" class="text-xl font-bold tracking-widest text-slate-950 uppercase font-serif">
+                        SHOPORA
+                    </a>
+                    <!-- Desktop Nav Links -->
+                    <nav class="hidden md:flex items-center space-x-8 text-xs font-medium uppercase tracking-wider text-slate-600">
+                        <a href="#" onclick="toggleView('storefront-home')" class="hover:text-slate-950 transition">Home</a>
+                        <a href="#" onclick="toggleCatalog('All')" class="hover:text-slate-950 transition">Shop All</a>
+                        <a href="#" onclick="toggleCatalog('Fashion')" class="hover:text-slate-950 transition">Apparel</a>
+                        <a href="#" onclick="toggleCatalog('Electronics')" class="hover:text-slate-950 transition">Tech</a>
+                        <a href="#" onclick="toggleCatalog('Home Living')" class="hover:text-slate-950 transition">Living</a>
+                    </nav>
+                </div>
+
+                <!-- Right Utility Icons -->
+                <div class="flex items-center space-x-5">
+                    <!-- Search Trigger -->
+                    <div class="relative hidden sm:block w-48 lg:w-64">
+                        <input type="text" id="nav-search-input" onkeyup="handleNavSearch(event)" placeholder="Search products..." 
+                            class="w-full pl-9 pr-4 py-1.5 bg-stone-100 border border-transparent rounded-full text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-slate-300 transition">
+                        <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2"></i>
+                    </div>
+
+                    <!-- Wishlist Trigger -->
+                    <button onclick="toggleWishlistModal()" class="text-slate-700 hover:text-slate-950 transition relative">
+                        <i data-lucide="heart" class="w-5 h-5"></i>
+                        <span id="wishlist-badge" class="hidden absolute -top-1.5 -right-1.5 bg-slate-900 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">0</span>
+                    </button>
+
+                    <!-- Account Button -->
+                    <button onclick="handleAccountClick()" class="text-slate-700 hover:text-slate-950 transition">
+                        <i data-lucide="user" class="w-5 h-5"></i>
+                    </button>
+
+                    <!-- Cart Trigger Button -->
+                    <button onclick="toggleCartDrawer(true)" class="text-slate-700 hover:text-slate-950 transition relative flex items-center gap-2 bg-stone-100 px-3 py-1.5 rounded-full hover:bg-stone-200">
+                        <i data-lucide="shopping-bag" class="w-4 h-4"></i>
+                        <span id="cart-count" class="text-xs font-semibold text-slate-900">0</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- MOBILE NAVIGATION MENU DRAWER -->
+    <div id="mobile-menu" class="fixed inset-0 z-50 hidden">
+        <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm" onclick="toggleMobileMenu()"></div>
+        <div class="fixed inset-y-0 left-0 w-4/5 max-w-sm bg-white p-6 shadow-xl flex flex-col justify-between">
+            <div>
+                <div class="flex justify-between items-center mb-8">
+                    <span class="text-lg font-bold tracking-widest text-slate-950 uppercase font-serif">SHOPORA</span>
+                    <button onclick="toggleMobileMenu()" class="text-slate-500 hover:text-slate-800">
+                        <i data-lucide="x" class="w-6 h-6"></i>
+                    </button>
+                </div>
+                <div class="space-y-4 text-sm font-medium uppercase tracking-wider">
+                    <a href="#" onclick="toggleView('storefront-home'); toggleMobileMenu()" class="block py-2 text-slate-800 border-b border-stone-100">Home</a>
+                    <a href="#" onclick="toggleCatalog('All'); toggleMobileMenu()" class="block py-2 text-slate-800 border-b border-stone-100">Shop All</a>
+                    <a href="#" onclick="toggleCatalog('Fashion'); toggleMobileMenu()" class="block py-2 text-slate-800 border-b border-stone-100">Apparel</a>
+                    <a href="#" onclick="toggleCatalog('Electronics'); toggleMobileMenu()" class="block py-2 text-slate-800 border-b border-stone-100">Electronics</a>
+                    <a href="#" onclick="toggleCatalog('Home Living'); toggleMobileMenu()" class="block py-2 text-slate-800 border-b border-stone-100">Living</a>
+                    <a href="#" onclick="toggleView('customer-account'); toggleMobileMenu()" class="block py-2 text-slate-800 border-b border-stone-100">My Account</a>
+                    <a href="#" onclick="toggleView('admin-dashboard'); toggleMobileMenu()" class="block py-2 text-slate-600">Admin Mode</a>
+                </div>
+            </div>
+            <div class="text-xs text-slate-400">
+                <p>&copy; 2026 Shopora Retail Technologies.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN APP CONTENT AREA (SPA CONTAINER) -->
+    <main class="flex-1">
+
+        <!-- 1. HOME VIEW -->
+        <section id="view-storefront-home" class="page-view active">
+            <!-- Hero Banner -->
+            <div class="relative bg-stone-900 text-white overflow-hidden py-24 lg:py-32">
+                <div class="absolute inset-0 opacity-40">
+                    <img src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1600&q=80" alt="Hero background" class="w-full h-full object-cover">
+                </div>
+                <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center sm:text-left">
+                    <span class="inline-block text-xs uppercase tracking-widest text-stone-300 mb-3 font-medium">Autumn/Winter Collection 2026</span>
+                    <h1 class="text-4xl sm:text-6xl font-light tracking-tight max-w-2xl mb-6 leading-tight">Refined Simplicity for Everyday Living.</h1>
+                    <p class="text-stone-300 text-base max-w-xl mb-8 font-light leading-relaxed">Discover meticulously crafted essentials designed to seamlessly elevate your lifestyle and home aesthetic.</p>
+                    <div class="flex flex-col sm:flex-row gap-4 justify-start">
+                        <button onclick="toggleCatalog('All')" class="bg-white text-slate-950 px-8 py-3.5 text-xs font-semibold uppercase tracking-wider hover:bg-stone-100 transition rounded-none">
+                            Explore Collection
+                        </button>
+                        <button onclick="toggleCatalog('Fashion')" class="border border-white/40 text-white px-8 py-3.5 text-xs font-semibold uppercase tracking-wider hover:bg-white/10 transition rounded-none">
+                            View Lookbook
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category Grid -->
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+                <div class="flex justify-between items-end mb-8">
+                    <div>
+                        <h2 class="text-2xl font-light text-slate-900">Curated Categories</h2>
+                        <p class="text-xs text-slate-500 mt-1">Explore by curated design discipline</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+                    <div onclick="toggleCatalog('Fashion')" class="group cursor-pointer relative overflow-hidden bg-stone-100 aspect-[3/4] flex items-end p-6">
+                        <img src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=600&q=80" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent"></div>
+                        <div class="relative z-10 text-white">
+                            <h3 class="text-base font-medium">Apparel</h3>
+                            <p class="text-xs text-stone-300">12 Products</p>
+                        </div>
+                    </div>
+                    <div onclick="toggleCatalog('Electronics')" class="group cursor-pointer relative overflow-hidden bg-stone-100 aspect-[3/4] flex items-end p-6">
+                        <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=80" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent"></div>
+                        <div class="relative z-10 text-white">
+                            <h3 class="text-base font-medium">Audio & Tech</h3>
+                            <p class="text-xs text-stone-300">8 Products</p>
+                        </div>
+                    </div>
+                    <div onclick="toggleCatalog('Home Living')" class="group cursor-pointer relative overflow-hidden bg-stone-100 aspect-[3/4] flex items-end p-6">
+                        <img src="https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=600&q=80" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent"></div>
+                        <div class="relative z-10 text-white">
+                            <h3 class="text-base font-medium">Home Living</h3>
+                            <p class="text-xs text-stone-300">10 Products</p>
+                        </div>
+                    </div>
+                    <div onclick="toggleCatalog('Accessories')" class="group cursor-pointer relative overflow-hidden bg-stone-100 aspect-[3/4] flex items-end p-6">
+                        <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent"></div>
+                        <div class="relative z-10 text-white">
+                            <h3 class="text-base font-medium">Accessories</h3>
+                            <p class="text-xs text-stone-300">15 Products</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Featured Products Grid -->
+            <div class="bg-stone-100/60 py-16">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex flex-col sm:flex-row sm:items-end justify-between mb-10">
+                        <div>
+                            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Curated Highlights</span>
+                            <h2 class="text-2xl font-light text-slate-900 mt-1">Featured Arrivals</h2>
+                        </div>
+                        <button onclick="toggleCatalog('All')" class="mt-2 sm:mt-0 text-xs font-semibold uppercase tracking-wider text-slate-900 hover:underline flex items-center gap-1">
+                            View All Products <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+
+                    <div id="home-featured-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Value Propositions -->
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 border-t border-stone-200">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center sm:text-left">
+                    <div class="flex flex-col sm:flex-row items-center sm:items-start gap-4">
+                        <div class="p-3 bg-stone-100 rounded-full text-slate-900">
+                            <i data-lucide="truck" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-semibold text-slate-900">Nationwide Express Shipping</h4>
+                            <p class="text-xs text-slate-500 mt-1">Dispatched within 24 hours with real-time tracking.</p>
+                        </div>
+                    </div>
+                    <div class="flex flex-col sm:flex-row items-center sm:items-start gap-4">
+                        <div class="p-3 bg-stone-100 rounded-full text-slate-900">
+                            <i data-lucide="shield-check" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-semibold text-slate-900">Authenticity Guarantee</h4>
+                            <p class="text-xs text-slate-500 mt-1">Directly sourced from certified master craftspeople.</p>
+                        </div>
+                    </div>
+                    <div class="flex flex-col sm:flex-row items-center sm:items-start gap-4">
+                        <div class="p-3 bg-stone-100 rounded-full text-slate-900">
+                            <i data-lucide="rotate-ccw" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-semibold text-slate-900">Hassle-Free Returns</h4>
+                            <p class="text-xs text-slate-500 mt-1">30-day effortless exchange or complete refund policy.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. CATALOG / SEARCH & FILTER VIEW -->
+        <section id="view-catalog" class="page-view">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <!-- Catalog Header -->
+                <div class="border-b border-stone-200 pb-6 mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                    <div>
+                        <h1 id="catalog-title" class="text-3xl font-light text-slate-950">All Collections</h1>
+                        <p id="catalog-subtitle" class="text-xs text-slate-500 mt-1">Showing all available premium items</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="text-xs text-slate-500">Sort by:</span>
+                        <select id="catalog-sort" onchange="renderCatalog()" class="bg-white border border-stone-300 rounded px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-slate-900">
+                            <option value="featured">Featured</option>
+                            <option value="price-low">Price: Low to High</option>
+                            <option value="price-high">Price: High to Low</option>
+                            <option value="newest">Newest Arrivals</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                    <!-- Filters Sidebar -->
+                    <div class="lg:col-span-1 space-y-6">
+                        <div class="bg-white p-5 border border-stone-200 rounded-lg space-y-6">
+                            <div class="flex justify-between items-center border-b border-stone-100 pb-3">
+                                <h3 class="text-xs font-semibold text-slate-900 uppercase tracking-wider">Filters</h3>
+                                <button onclick="resetFilters()" class="text-[11px] text-slate-500 hover:text-slate-900 underline">Reset All</button>
+                            </div>
+
+                            <!-- Category Filter -->
+                            <div>
+                                <label class="block text-xs font-medium text-slate-700 mb-2">Category</label>
+                                <div class="space-y-1.5 text-xs text-slate-600">
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="radio" name="filter-cat" value="All" checked onchange="filterCatalogCategory('All')" class="text-slate-900 focus:ring-slate-900">
+                                        <span>All Categories</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="radio" name="filter-cat" value="Fashion" onchange="filterCatalogCategory('Fashion')" class="text-slate-900 focus:ring-slate-900">
+                                        <span>Fashion & Apparel</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="radio" name="filter-cat" value="Electronics" onchange="filterCatalogCategory('Electronics')" class="text-slate-900 focus:ring-slate-900">
+                                        <span>Electronics & Tech</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="radio" name="filter-cat" value="Home Living" onchange="filterCatalogCategory('Home Living')" class="text-slate-900 focus:ring-slate-900">
+                                        <span>Home & Living</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="radio" name="filter-cat" value="Accessories" onchange="filterCatalogCategory('Accessories')" class="text-slate-900 focus:ring-slate-900">
+                                        <span>Accessories</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Price Range -->
+                            <div>
+                                <label class="block text-xs font-medium text-slate-700 mb-2">Max Price (IDR)</label>
+                                <input type="range" id="filter-price" min="200000" max="10000000" step="500000" value="10000000" oninput="updatePriceLabel(this.value); renderCatalog()" class="w-full accent-slate-900">
+                                <div class="flex justify-between text-[11px] text-slate-500 mt-1">
+                                    <span>Rp 200k</span>
+                                    <span id="price-max-label" class="font-semibold text-slate-900">Rp 10.000.000</span>
+                                </div>
+                            </div>
+
+                            <!-- Availability -->
+                            <div>
+                                <label class="block text-xs font-medium text-slate-700 mb-2">Availability</label>
+                                <label class="flex items-center gap-2 text-xs text-slate-600 cursor-pointer">
+                                    <input type="checkbox" id="filter-in-stock" onchange="renderCatalog()" class="rounded border-stone-300 text-slate-900 focus:ring-slate-900">
+                                    <span>In Stock Only</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Products Grid -->
+                    <div class="lg:col-span-3">
+                        <div id="catalog-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+                        
+                        <!-- Empty Catalog State -->
+                        <div id="catalog-empty-state" class="hidden text-center py-16 bg-white border border-stone-200 rounded-lg">
+                            <i data-lucide="package-x" class="w-12 h-12 text-slate-300 mx-auto mb-3"></i>
+                            <h3 class="text-sm font-semibold text-slate-800">No matching products found</h3>
+                            <p class="text-xs text-slate-500 mt-1">Try resetting your filters or adjusting your search term.</p>
+                            <button onclick="resetFilters()" class="mt-4 px-4 py-2 bg-slate-900 text-white text-xs font-medium rounded hover:bg-slate-800 transition">Reset Filters</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. CHECKOUT VIEW -->
+        <section id="view-checkout" class="page-view">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+                <div class="mb-8 border-b border-stone-200 pb-4">
+                    <h1 class="text-2xl font-light text-slate-950">Checkout</h1>
+                    <p class="text-xs text-slate-500 mt-1">Complete your order shipping and payment details</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    <!-- Checkout Form (8 Cols) -->
+                    <div class="lg:col-span-7 space-y-6">
+                        <!-- Contact Info -->
+                        <div class="bg-white p-6 border border-stone-200 rounded-lg space-y-4">
+                            <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                                <i data-lucide="user" class="w-4 h-4"></i> 1. Contact Information
+                            </h2>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs text-slate-600 mb-1">Full Name</label>
+                                    <input type="text" value="Alexander Wright" class="w-full text-xs px-3 py-2 border border-stone-300 rounded focus:border-slate-900 focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-slate-600 mb-1">Email Address</label>
+                                    <input type="email" value="alexander.wright@example.com" class="w-full text-xs px-3 py-2 border border-stone-300 rounded focus:border-slate-900 focus:outline-none">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Shipping Address -->
+                        <div class="bg-white p-6 border border-stone-200 rounded-lg space-y-4">
+                            <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                                <i data-lucide="map-pin" class="w-4 h-4"></i> 2. Shipping Address
+                            </h2>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-xs text-slate-600 mb-1">Street Address</label>
+                                    <input type="text" value="Jl. Senopati No. 42, Kebayoran Baru" class="w-full text-xs px-3 py-2 border border-stone-300 rounded focus:border-slate-900 focus:outline-none">
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-xs text-slate-600 mb-1">City</label>
+                                        <input type="text" value="Jakarta Selatan" class="w-full text-xs px-3 py-2 border border-stone-300 rounded focus:border-slate-900 focus:outline-none">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs text-slate-600 mb-1">Postal Code</label>
+                                        <input type="text" value="12190" class="w-full text-xs px-3 py-2 border border-stone-300 rounded focus:border-slate-900 focus:outline-none">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Payment Method -->
+                        <div class="bg-white p-6 border border-stone-200 rounded-lg space-y-4">
+                            <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                                <i data-lucide="credit-card" class="w-4 h-4"></i> 3. Payment Method
+                            </h2>
+                            <div class="space-y-2">
+                                <label class="flex items-center justify-between p-3 border border-stone-200 rounded cursor-pointer hover:bg-stone-50">
+                                    <div class="flex items-center gap-3">
+                                        <input type="radio" name="payment" checked class="text-slate-900">
+                                        <span class="text-xs font-medium text-slate-800">QRIS Instant Payment</span>
+                                    </div>
+                                    <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded">Gopay / ShopeePay / BCA</span>
+                                </label>
+                                <label class="flex items-center justify-between p-3 border border-stone-200 rounded cursor-pointer hover:bg-stone-50">
+                                    <div class="flex items-center gap-3">
+                                        <input type="radio" name="payment" class="text-slate-900">
+                                        <span class="text-xs font-medium text-slate-800">BCA Virtual Account</span>
+                                    </div>
+                                    <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded">Auto Verification</span>
+                                </label>
+                                <label class="flex items-center justify-between p-3 border border-stone-200 rounded cursor-pointer hover:bg-stone-50">
+                                    <div class="flex items-center gap-3">
+                                        <input type="radio" name="payment" class="text-slate-900">
+                                        <span class="text-xs font-medium text-slate-800">Credit / Debit Card</span>
+                                    </div>
+                                    <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded">Visa / Mastercard</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Order Summary Sidebar (5 Cols) -->
+                    <div class="lg:col-span-5">
+                        <div class="bg-white p-6 border border-stone-200 rounded-lg sticky top-24 space-y-4">
+                            <h3 class="text-sm font-semibold text-slate-900 uppercase tracking-wider border-b border-stone-100 pb-3">Order Summary</h3>
+                            
+                            <!-- Items Mini List -->
+                            <div id="checkout-items-list" class="space-y-3 max-h-60 overflow-y-auto pr-2 divide-y divide-stone-100">
+                                <!-- Populated by JS -->
+                            </div>
+
+                            <div class="border-t border-stone-200 pt-3 space-y-2 text-xs">
+                                <div class="flex justify-between text-slate-600">
+                                    <span>Subtotal</span>
+                                    <span id="checkout-subtotal" class="font-medium text-slate-900">Rp 0</span>
+                                </div>
+                                <div class="flex justify-between text-slate-600">
+                                    <span>Estimated Shipping</span>
+                                    <span class="font-medium text-slate-900">Rp 25.000</span>
+                                </div>
+                                <div class="flex justify-between text-slate-600">
+                                    <span>Taxes (11% PPN)</span>
+                                    <span id="checkout-tax" class="font-medium text-slate-900">Rp 0</span>
+                                </div>
+                                <div class="border-t border-stone-200 pt-2 flex justify-between text-sm font-semibold text-slate-950">
+                                    <span>Total Payment</span>
+                                    <span id="checkout-total">Rp 0</span>
+                                </div>
+                            </div>
+
+                            <button onclick="processOrder()" class="w-full bg-slate-950 text-white py-3.5 text-xs font-semibold uppercase tracking-wider hover:bg-slate-800 transition rounded mt-4">
+                                Place Order & Pay
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. ORDER CONFIRMATION VIEW -->
+        <section id="view-order-confirmation" class="page-view">
+            <div class="max-w-2xl mx-auto px-4 py-16 text-center">
+                <div class="w-16 h-16 bg-emerald-100 text-emerald-800 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i data-lucide="check" class="w-8 h-8"></i>
+                </div>
+                <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Order Successfully Dispatched</span>
+                <h1 class="text-3xl font-light text-slate-950 mt-1 mb-2">Thank You For Your Order</h1>
+                <p class="text-xs text-slate-600 mb-8">Order ID: <span id="confirmed-order-id" class="font-mono font-semibold text-slate-900">#SHP-89213</span>. A receipt has been delivered to your email.</p>
+
+                <div class="bg-white border border-stone-200 rounded-lg p-6 text-left mb-8 space-y-4">
+                    <h3 class="text-xs font-semibold text-slate-900 uppercase tracking-wider border-b border-stone-100 pb-2">Delivery Details</h3>
+                    <div class="grid grid-cols-2 gap-4 text-xs">
+                        <div>
+                            <p class="text-slate-400">Estimated Delivery</p>
+                            <p class="font-medium text-slate-800 mt-0.5">2 - 3 Business Days</p>
+                        </div>
+                        <div>
+                            <p class="text-slate-400">Courier Service</p>
+                            <p class="font-medium text-slate-800 mt-0.5">JNE Express (Air Freight)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-center gap-4">
+                    <button onclick="toggleView('customer-account')" class="bg-slate-950 text-white px-6 py-2.5 text-xs font-semibold uppercase tracking-wider hover:bg-slate-800 transition rounded">
+                        View Order Details
+                    </button>
+                    <button onclick="toggleView('storefront-home')" class="border border-stone-300 text-slate-800 px-6 py-2.5 text-xs font-semibold uppercase tracking-wider hover:bg-stone-100 transition rounded">
+                        Continue Shopping
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. CUSTOMER ACCOUNT VIEW -->
+        <section id="view-customer-account" class="page-view">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+                <div class="flex flex-col md:flex-row items-start md:items-center justify-between pb-6 border-b border-stone-200 mb-8 gap-4">
+                    <div class="flex items-center gap-4">
+                        <div class="w-14 h-14 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold text-lg">AW</div>
+                        <div>
+                            <h1 class="text-xl font-semibold text-slate-950">Alexander Wright</h1>
+                            <p class="text-xs text-slate-500">Member since January 2025 • Premium Client</p>
+                        </div>
+                    </div>
+                    <button onclick="toggleView('storefront-home')" class="text-xs text-slate-600 hover:text-slate-900 flex items-center gap-1 border border-stone-300 px-3 py-1.5 rounded">
+                        <i data-lucide="log-out" class="w-3.5 h-3.5"></i> Sign Out
+                    </button>
+                </div>
+
+                <!-- Account Tabs -->
+                <div class="flex border-b border-stone-200 mb-6 gap-6 text-xs font-medium uppercase tracking-wider">
+                    <button onclick="switchAccountTab('orders')" id="tab-btn-orders" class="pb-3 border-b-2 border-slate-950 text-slate-950 font-semibold">Order History</button>
+                    <button onclick="switchAccountTab('wishlist')" id="tab-btn-wishlist" class="pb-3 text-slate-500 hover:text-slate-900">Saved Wishlist</button>
+                    <button onclick="switchAccountTab('profile')" id="tab-btn-profile" class="pb-3 text-slate-500 hover:text-slate-900">Personal Profile</button>
+                </div>
+
+                <!-- Tab 1: Orders -->
+                <div id="tab-content-orders" class="space-y-4">
+                    <div class="bg-white border border-stone-200 rounded-lg overflow-hidden">
+                        <div class="p-4 border-b border-stone-100 bg-stone-50 flex justify-between items-center text-xs">
+                            <div>
+                                <span class="font-semibold text-slate-900">Order #SHP-89213</span>
+                                <span class="text-slate-500 ml-2">Placed on Oct 14, 2026</span>
+                            </div>
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-blue-100 text-blue-800">Processing</span>
+                        </div>
+                        <div class="p-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+                            <div class="flex items-center gap-4">
+                                <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=200&q=80" class="w-12 h-12 object-cover rounded bg-stone-100">
+                                <div class="text-xs">
+                                    <h4 class="font-semibold text-slate-900">Acoustic ANC Wireless Headphones</h4>
+                                    <p class="text-slate-500">Qty: 1 • Rp 3.499.000</p>
+                                </div>
+                            </div>
+                            <button onclick="showToast('Tracking link sent to email')" class="text-xs border border-stone-300 px-3 py-1.5 rounded text-slate-700 hover:bg-stone-100">Track Package</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 2: Wishlist -->
+                <div id="tab-content-wishlist" class="hidden">
+                    <div id="account-wishlist-grid" class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Tab 3: Profile -->
+                <div id="tab-content-profile" class="hidden">
+                    <div class="bg-white border border-stone-200 rounded-lg p-6 max-w-xl space-y-4">
+                        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-900">Default Shipping Address</h3>
+                        <p class="text-xs text-slate-600">Alexander Wright<br>Jl. Senopati No. 42, Kebayoran Baru<br>Jakarta Selatan, 12190<br>Indonesia</p>
+                        <button class="text-xs border border-stone-300 px-3 py-1.5 rounded hover:bg-stone-50">Edit Address</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. ADMIN DASHBOARD VIEW -->
+        <section id="view-admin-dashboard" class="page-view">
+            <div class="bg-slate-900 text-white min-h-screen">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                    <!-- Dashboard Header -->
+                    <div class="flex flex-col sm:flex-row justify-between sm:items-center pb-8 border-b border-slate-800 gap-4">
+                        <div>
+                            <span class="text-xs font-mono text-slate-400">MANAGEMENT PORTAL</span>
+                            <h1 class="text-2xl font-light text-white">Store Overview & Analytics</h1>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <button onclick="openAddProductModal()" class="bg-white text-slate-900 px-4 py-2 text-xs font-semibold uppercase tracking-wider hover:bg-stone-200 transition rounded flex items-center gap-1.5">
+                                <i data-lucide="plus" class="w-4 h-4"></i> Add New Product
+                            </button>
+                            <button onclick="toggleView('storefront-home')" class="border border-slate-700 text-slate-300 px-4 py-2 text-xs font-semibold uppercase tracking-wider hover:bg-slate-800 transition rounded">
+                                Return to Store
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Metrics Stats Grid -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
+                        <div class="bg-slate-800/80 p-5 rounded border border-slate-700">
+                            <div class="flex justify-between items-center text-slate-400 mb-2">
+                                <span class="text-xs uppercase tracking-wider font-medium">Total Revenue</span>
+                                <i data-lucide="dollar-sign" class="w-4 h-4"></i>
+                            </div>
+                            <div class="text-2xl font-semibold text-white">Rp 148.500.000</div>
+                            <span class="text-[11px] text-emerald-400 font-medium">+14.2% from last month</span>
+                        </div>
+                        <div class="bg-slate-800/80 p-5 rounded border border-slate-700">
+                            <div class="flex justify-between items-center text-slate-400 mb-2">
+                                <span class="text-xs uppercase tracking-wider font-medium">Orders Processed</span>
+                                <i data-lucide="shopping-cart" class="w-4 h-4"></i>
+                            </div>
+                            <div class="text-2xl font-semibold text-white">342</div>
+                            <span class="text-[11px] text-emerald-400 font-medium">+8.1% new orders</span>
+                        </div>
+                        <div class="bg-slate-800/80 p-5 rounded border border-slate-700">
+                            <div class="flex justify-between items-center text-slate-400 mb-2">
+                                <span class="text-xs uppercase tracking-wider font-medium">Active Inventory</span>
+                                <i data-lucide="box" class="w-4 h-4"></i>
+                            </div>
+                            <div class="text-2xl font-semibold text-white">8 Products</div>
+                            <span class="text-[11px] text-amber-400 font-medium">1 Item low stock alert</span>
+                        </div>
+                        <div class="bg-slate-800/80 p-5 rounded border border-slate-700">
+                            <div class="flex justify-between items-center text-slate-400 mb-2">
+                                <span class="text-xs uppercase tracking-wider font-medium">Customer Retention</span>
+                                <i data-lucide="users" class="w-4 h-4"></i>
+                            </div>
+                            <div class="text-2xl font-semibold text-white">78.4%</div>
+                            <span class="text-[11px] text-emerald-400 font-medium">+2.5% repeat buyers</span>
+                        </div>
+                    </div>
+
+                    <!-- Admin Inventory Table -->
+                    <div class="mt-10 bg-slate-800/80 rounded border border-slate-700 p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-sm font-semibold uppercase tracking-wider text-white">Product Inventory Control</h2>
+                            <span class="text-xs text-slate-400">Live Inventory Sync</span>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs text-slate-300">
+                                <thead class="bg-slate-900/60 uppercase tracking-wider text-slate-400 border-b border-slate-700">
+                                    <tr>
+                                        <th class="p-3">Product Name</th>
+                                        <th class="p-3">Category</th>
+                                        <th class="p-3">Price (IDR)</th>
+                                        <th class="p-3">Stock Units</th>
+                                        <th class="p-3">Status</th>
+                                        <th class="p-3 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-product-table-body" class="divide-y divide-slate-700/50">
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-slate-950 text-slate-400 text-xs border-t border-slate-800 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+                <div>
+                    <span class="text-lg font-bold tracking-widest text-white uppercase font-serif block mb-3">SHOPORA</span>
+                    <p class="text-slate-400 leading-relaxed font-light">Minimalist e-commerce platform committed to exceptional craftsmanship, modern sustainability, and elevated lifestyle objects.</p>
+                </div>
+                <div>
+                    <h4 class="text-white font-semibold uppercase tracking-wider mb-3">Navigation</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" onclick="toggleCatalog('All')" class="hover:text-white transition">All Products</a></li>
+                        <li><a href="#" onclick="toggleCatalog('Fashion')" class="hover:text-white transition">Apparel</a></li>
+                        <li><a href="#" onclick="toggleCatalog('Electronics')" class="hover:text-white transition">Tech Essentials</a></li>
+                        <li><a href="#" onclick="toggleCatalog('Home Living')" class="hover:text-white transition">Living Space</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-white font-semibold uppercase tracking-wider mb-3">Customer Service</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="hover:text-white transition">Shipping & Delivery</a></li>
+                        <li><a href="#" class="hover:text-white transition">Returns Policy</a></li>
+                        <li><a href="#" class="hover:text-white transition">Order Tracking</a></li>
+                        <li><a href="#" class="hover:text-white transition">Contact Care</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-white font-semibold uppercase tracking-wider mb-3">Newsletter</h4>
+                    <p class="text-slate-400 mb-3">Subscribe for exclusive releases and private previews.</p>
+                    <div class="flex">
+                        <input type="email" placeholder="Enter your email" class="bg-slate-900 border border-slate-800 px-3 py-2 text-xs text-white rounded-l focus:outline-none focus:border-slate-700 w-full">
+                        <button class="bg-white text-slate-950 px-4 py-2 font-semibold rounded-r hover:bg-stone-200 transition">Join</button>
+                    </div>
+                </div>
+            </div>
+            <div class="pt-8 border-t border-slate-800/80 flex flex-col sm:flex-row justify-between items-center text-slate-500">
+                <p>&copy; 2026 Shopora Web Prototype. Designed for high performance.</p>
+                <div class="flex space-x-4 mt-4 sm:mt-0">
+                    <span>Privacy Policy</span>
+                    <span>Terms of Service</span>
+                    <span>IDR (Rp)</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- CART DRAWER MODAL -->
+    <div id="cart-drawer" class="fixed inset-0 z-50 hidden">
+        <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm drawer-overlay" onclick="toggleCartDrawer(false)"></div>
+        <div class="fixed inset-y-0 right-0 max-w-full flex pl-10">
+            <div class="w-screen max-w-md bg-white shadow-2xl flex flex-col justify-between">
+                <!-- Cart Header -->
+                <div class="p-6 border-b border-stone-200 flex justify-between items-center">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="shopping-bag" class="w-5 h-5 text-slate-900"></i>
+                        <h2 class="text-base font-semibold text-slate-900">Your Shopping Bag</h2>
+                    </div>
+                    <button onclick="toggleCartDrawer(false)" class="text-slate-400 hover:text-slate-700">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+
+                <!-- Cart Items List -->
+                <div id="cart-drawer-items" class="p-6 flex-1 overflow-y-auto space-y-4 divide-y divide-stone-100">
+                    <!-- Populated dynamically via JS -->
+                </div>
+
+                <!-- Empty State for Cart -->
+                <div id="cart-empty-msg" class="hidden p-12 text-center my-auto">
+                    <i data-lucide="shopping-bag" class="w-12 h-12 text-stone-300 mx-auto mb-3"></i>
+                    <p class="text-sm font-semibold text-slate-800">Your bag is currently empty</p>
+                    <p class="text-xs text-slate-500 mt-1 mb-4">Explore our catalog to find items you love.</p>
+                    <button onclick="toggleCartDrawer(false); toggleCatalog('All')" class="px-4 py-2 bg-slate-950 text-white text-xs font-semibold rounded hover:bg-slate-800 transition">Start Shopping</button>
+                </div>
+
+                <!-- Cart Footer & Checkout Action -->
+                <div id="cart-footer" class="p-6 border-t border-stone-200 bg-stone-50 space-y-3">
+                    <div class="flex justify-between text-xs text-slate-600">
+                        <span>Subtotal</span>
+                        <span id="cart-subtotal-price" class="font-semibold text-slate-950">Rp 0</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400">Taxes and shipping calculated at checkout.</p>
+                    <button onclick="toggleCartDrawer(false); toggleView('checkout')" class="w-full bg-slate-950 text-white py-3 text-xs font-semibold uppercase tracking-wider hover:bg-slate-800 transition rounded">
+                        Proceed to Checkout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PRODUCT QUICK VIEW MODAL -->
+    <div id="product-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeProductModal()"></div>
+        <div id="product-modal-content" class="relative bg-white rounded-lg max-w-3xl w-full overflow-hidden shadow-2xl z-10 p-6 sm:p-8 max-h-[90vh] overflow-y-auto">
+            <!-- Modal body injected dynamically by JS -->
+        </div>
+    </div>
+
+    <!-- ADD PRODUCT MODAL (ADMIN) -->
+    <div id="admin-add-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeAddProductModal()"></div>
+        <div class="relative bg-white rounded-lg max-w-md w-full p-6 z-10 space-y-4">
+            <h3 class="text-base font-semibold text-slate-900">Add New Inventory Item</h3>
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block text-slate-600 mb-1">Product Title</label>
+                    <input type="text" id="new-prod-name" class="w-full border border-stone-300 rounded px-3 py-2">
+                </div>
+                <div>
+                    <label class="block text-slate-600 mb-1">Category</label>
+                    <select id="new-prod-cat" class="w-full border border-stone-300 rounded px-3 py-2">
+                        <option value="Fashion">Fashion</option>
+                        <option value="Electronics">Electronics</option>
+                        <option value="Home Living">Home Living</option>
+                        <option value="Accessories">Accessories</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-slate-600 mb-1">Price (IDR)</label>
+                    <input type="number" id="new-prod-price" placeholder="450000" class="w-full border border-stone-300 rounded px-3 py-2">
+                </div>
+                <div>
+                    <label class="block text-slate-600 mb-1">Stock Quantity</label>
+                    <input type="number" id="new-prod-stock" value="15" class="w-full border border-stone-300 rounded px-3 py-2">
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button onclick="closeAddProductModal()" class="px-4 py-2 border border-stone-300 text-xs rounded">Cancel</button>
+                <button onclick="saveNewProduct()" class="px-4 py-2 bg-slate-900 text-white text-xs rounded">Save Item</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
+    <!-- VANILLA JAVASCRIPT LOGIC -->
+    <script>
+        // MOCK DATA STORE
+        let products = [
+            {
+                id: 1,
+                name: "Minimalist Wool Cashmere Coat",
+                category: "Fashion",
+                price: 2450000,
+                rating: 4.9,
+                stock: 12,
+                image: "https://images.unsplash.com/photo-1539533018447-63fcce2678e3?auto=format&fit=crop&w=800&q=80",
+                description: "Crafted from ethically sourced Mongolian wool blend. Features tailored lapels, deep side pockets, and a timeless relaxed fit.",
+                isFeatured: true
+            },
+            {
+                id: 2,
+                name: "Acoustic Noise-Canceling Headphones",
+                category: "Electronics",
+                price: 3499000,
+                rating: 4.8,
+                stock: 8,
+                image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80",
+                description: "Studio-grade precision drivers deliver crystal clear acoustics with active noise cancellation and 40-hour battery stamina.",
+                isFeatured: true
+            },
+            {
+                id: 3,
+                name: "Ceramic Matte Teapot & Cup Set",
+                category: "Home Living",
+                price: 680000,
+                rating: 4.7,
+                stock: 25,
+                image: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=800&q=80",
+                description: "Handcrafted stoneware finished with a tactile matte glaze. Ideal for daily tea rituals and modern kitchen aesthetics.",
+                isFeatured: true
+            },
+            {
+                id: 4,
+                name: "Minimalist Automatic Steel Watch",
+                category: "Accessories",
+                price: 4250000,
+                rating: 5.0,
+                stock: 4,
+                image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80",
+                description: "Japanese automatic movement housed in surgical grade stainless steel with sapphire crystal glass.",
+                isFeatured: true
+            },
+            {
+                id: 5,
+                name: "Structured Canvas Tote Bag",
+                category: "Fashion",
+                price: 490000,
+                rating: 4.6,
+                stock: 18,
+                image: "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80",
+                description: "Heavy-duty organic cotton canvas with reinforced leather handles and internal padded laptop divider.",
+                isFeatured: false
+            },
+            {
+                id: 6,
+                name: "Smart Ambient Desk Lamp",
+                category: "Electronics",
+                price: 890000,
+                rating: 4.5,
+                stock: 15,
+                image: "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=800&q=80",
+                description: "Adjustable color temperature lighting with wireless charging base and touch controls.",
+                isFeatured: false
+            },
+            {
+                id: 7,
+                name: "Organic Linen Bedding Set",
+                category: "Home Living",
+                price: 1850000,
+                rating: 4.9,
+                stock: 6,
+                image: "https://images.unsplash.com/photo-1616046229478-9901c5536a45?auto=format&fit=crop&w=800&q=80",
+                description: "100% French flax linen pre-washed for effortless softness and breathable temperature regulation.",
+                isFeatured: false
+            },
+            {
+                id: 8,
+                name: "Polarized Acetate Sunglasses",
+                category: "Accessories",
+                price: 1290000,
+                rating: 4.7,
+                stock: 20,
+                image: "https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=800&q=80",
+                description: "Hand-polished Italian acetate frames fitted with Category 3 UV400 protective polarized lenses.",
+                isFeatured: false
+            }
+        ];
+
+        let cart = [];
+        let wishlist = [];
+        let currentCategoryFilter = 'All';
+
+        // INITIALIZE APP
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            renderFeaturedProducts();
+            renderCatalog();
+            renderAdminTable();
+        });
+
+        // CURRENCY FORMATTER
+        function formatIDR(amount) {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount);
+        }
+
+        // NAVIGATION (SPA VIEW SWITCHING)
+        function toggleView(viewId) {
+            document.querySelectorAll('.page-view').forEach(view => {
+                view.classList.remove('active');
+            });
+            const target = document.getElementById('view-' + viewId);
+            if (target) {
+                target.classList.add('active');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        function handleAccountClick() {
+            toggleView('customer-account');
+        }
+
+        // TOAST NOTIFICATION SYSTEM
+        function showToast(message) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'bg-slate-950 text-white text-xs px-4 py-3 rounded shadow-lg flex items-center gap-2 transform transition duration-300 ease-out translate-y-2 opacity-0 pointer-events-auto';
+            toast.innerHTML = `<i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i><span>${message}</span>`;
+            
+            container.appendChild(toast);
+            lucide.createIcons();
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // RENDER HOMEPAGE FEATURED PRODUCTS
+        function renderFeaturedProducts() {
+            const container = document.getElementById('home-featured-grid');
+            const featured = products.filter(p => p.isFeatured);
+            container.innerHTML = featured.map(p => createProductCardHTML(p)).join('');
+            lucide.createIcons();
+        }
+
+        // CREATE PRODUCT CARD HTML
+        function createProductCardHTML(product) {
+            const isWishlisted = wishlist.includes(product.id);
+            return `
+                <div class="group bg-white border border-stone-200 rounded overflow-hidden flex flex-col justify-between hover:border-slate-400 transition duration-300">
+                    <div class="relative bg-stone-100 aspect-square overflow-hidden cursor-pointer" onclick="openProductModal(${product.id})">
+                        <img src="${product.image}" alt="${product.name}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                        <button onclick="event.stopPropagation(); toggleWishlist(${product.id})" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center text-slate-700 hover:text-red-500 hover:bg-white transition">
+                            <i data-lucide="heart" class="w-4 h-4 ${isWishlisted ? 'fill-red-500 text-red-500' : ''}"></i>
+                        </button>
+                    </div>
+                    <div class="p-4 flex-1 flex flex-col justify-between">
+                        <div>
+                            <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">${product.category}</span>
+                            <h3 onclick="openProductModal(${product.id})" class="text-xs font-semibold text-slate-900 mt-1 hover:underline cursor-pointer line-clamp-1">${product.name}</h3>
+                            <div class="flex items-center gap-1 mt-1 text-[11px] text-amber-500">
+                                <i data-lucide="star" class="w-3 h-3 fill-amber-400 text-amber-400"></i>
+                                <span class="font-medium text-slate-700">${product.rating}</span>
+                            </div>
+                        </div>
+                        <div class="mt-4 flex items-center justify-between border-t border-stone-100 pt-3">
+                            <span class="text-xs font-bold text-slate-950">${formatIDR(product.price)}</span>
+                            <button onclick="addToCart(${product.id})" class="bg-slate-950 text-white text-[11px] font-semibold uppercase tracking-wider px-3 py-1.5 rounded hover:bg-slate-800 transition flex items-center gap-1">
+                                <i data-lucide="plus" class="w-3 h-3"></i> Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // CATALOG RENDERING & FILTERS
+        function toggleCatalog(category) {
+            currentCategoryFilter = category;
+            toggleView('catalog');
+            
+            // Sync radio
+            const radios = document.querySelectorAll('input[name="filter-cat"]');
+            radios.forEach(r => {
+                r.checked = (r.value === category);
+            });
+
+            renderCatalog();
+        }
+
+        function filterCatalogCategory(category) {
+            currentCategoryFilter = category;
+            renderCatalog();
+        }
+
+        function updatePriceLabel(val) {
+            document.getElementById('price-max-label').innerText = formatIDR(val);
+        }
+
+        function resetFilters() {
+            currentCategoryFilter = 'All';
+            document.querySelector('input[name="filter-cat"][value="All"]').checked = true;
+            const priceSlider = document.getElementById('filter-price');
+            priceSlider.value = 10000000;
+            updatePriceLabel(10000000);
+            document.getElementById('filter-in-stock').checked = false;
+            document.getElementById('nav-search-input').value = '';
+            renderCatalog();
+        }
+
+        function handleNavSearch(event) {
+            if (event.key === 'Enter' || event.target.value.length > 2) {
+                toggleView('catalog');
+                renderCatalog();
+            }
+        }
+
+        function renderCatalog() {
+            const grid = document.getElementById('catalog-grid');
+            const emptyState = document.getElementById('catalog-empty-state');
+            const searchQuery = document.getElementById('nav-search-input').value.toLowerCase();
+            const maxPrice = parseFloat(document.getElementById('filter-price').value);
+            const inStockOnly = document.getElementById('filter-in-stock').checked;
+            const sortVal = document.getElementById('catalog-sort').value;
+
+            let filtered = products.filter(p => {
+                const matchesCat = (currentCategoryFilter === 'All' || p.category === currentCategoryFilter);
+                const matchesSearch = p.name.toLowerCase().includes(searchQuery) || p.category.toLowerCase().includes(searchQuery);
+                const matchesPrice = p.price <= maxPrice;
+                const matchesStock = inStockOnly ? p.stock > 0 : true;
+                return matchesCat && matchesSearch && matchesPrice && matchesStock;
+            });
+
+            // Sorting logic
+            if (sortVal === 'price-low') filtered.sort((a,b) => a.price - b.price);
+            if (sortVal === 'price-high') filtered.sort((a,b) => b.price - a.price);
+
+            document.getElementById('catalog-title').innerText = currentCategoryFilter === 'All' ? 'All Collections' : currentCategoryFilter;
+            document.getElementById('catalog-subtitle').innerText = `Displaying ${filtered.length} products`;
+
+            if (filtered.length === 0) {
+                grid.innerHTML = '';
+                emptyState.classList.remove('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+                grid.innerHTML = filtered.map(p => createProductCardHTML(p)).join('');
+            }
+            lucide.createIcons();
+        }
+
+        // CART MANAGEMENT SYSTEM
+        function addToCart(productId) {
+            const prod = products.find(p => p.id === productId);
+            if (!prod) return;
+
+            const existing = cart.find(item => item.id === productId);
+            if (existing) {
+                existing.qty += 1;
+            } else {
+                cart.push({ ...prod, qty: 1 });
+            }
+
+            updateCartUI();
+            showToast(`Added "${prod.name}" to cart`);
+        }
+
+        function updateCartQty(productId, delta) {
+            const item = cart.find(i => i.id === productId);
+            if (item) {
+                item.qty += delta;
+                if (item.qty <= 0) {
+                    cart = cart.filter(i => i.id !== productId);
+                }
+            }
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            const countBadge = document.getElementById('cart-count');
+            const drawerContainer = document.getElementById('cart-drawer-items');
+            const emptyMsg = document.getElementById('cart-empty-msg');
+            const cartFooter = document.getElementById('cart-footer');
+            const subtotalLabel = document.getElementById('cart-subtotal-price');
+
+            const totalItems = cart.reduce((acc, i) => acc + i.qty, 0);
+            const subtotal = cart.reduce((acc, i) => acc + (i.price * i.qty), 0);
+
+            countBadge.innerText = totalItems;
+
+            if (cart.length === 0) {
+                drawerContainer.innerHTML = '';
+                emptyMsg.classList.remove('hidden');
+                cartFooter.classList.add('hidden');
+            } else {
+                emptyMsg.classList.add('hidden');
+                cartFooter.classList.remove('hidden');
+
+                drawerContainer.innerHTML = cart.map(item => `
+                    <div class="flex gap-4 pt-3">
+                        <img src="${item.image}" class="w-16 h-16 object-cover rounded bg-stone-100">
+                        <div class="flex-1 flex flex-col justify-between">
+                            <div>
+                                <h4 class="text-xs font-semibold text-slate-900">${item.name}</h4>
+                                <span class="text-xs font-bold text-slate-800">${formatIDR(item.price)}</span>
+                            </div>
+                            <div class="flex items-center gap-2 mt-2">
+                                <div class="flex items-center border border-stone-200 rounded">
+                                    <button onclick="updateCartQty(${item.id}, -1)" class="px-2 py-0.5 text-slate-600 hover:bg-stone-100">-</button>
+                                    <span class="px-2 text-xs font-semibold text-slate-900">${item.qty}</span>
+                                    <button onclick="updateCartQty(${item.id}, 1)" class="px-2 py-0.5 text-slate-600 hover:bg-stone-100">+</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            subtotalLabel.innerText = formatIDR(subtotal);
+            renderCheckoutSummary();
+        }
+
+        function toggleCartDrawer(open) {
+            const drawer = document.getElementById('cart-drawer');
+            if (open) drawer.classList.remove('hidden');
+            else drawer.classList.add('hidden');
+        }
+
+        // CHECKOUT & ORDER FLOW
+        function renderCheckoutSummary() {
+            const checkoutList = document.getElementById('checkout-items-list');
+            const subtotal = cart.reduce((acc, i) => acc + (i.price * i.qty), 0);
+            const shipping = subtotal > 0 ? 25000 : 0;
+            const tax = Math.round(subtotal * 0.11);
+            const total = subtotal + shipping + tax;
+
+            if (checkoutList) {
+                checkoutList.innerHTML = cart.map(item => `
+                    <div class="flex justify-between items-center py-2 text-xs">
+                        <div>
+                            <span class="font-medium text-slate-900">${item.name}</span>
+                            <p class="text-slate-400">Qty: ${item.qty}</p>
+                        </div>
+                        <span class="font-semibold text-slate-800">${formatIDR(item.price * item.qty)}</span>
+                    </div>
+                `).join('');
+            }
+
+            document.getElementById('checkout-subtotal').innerText = formatIDR(subtotal);
+            document.getElementById('checkout-tax').innerText = formatIDR(tax);
+            document.getElementById('checkout-total').innerText = formatIDR(total);
+        }
+
+        function processOrder() {
+            if (cart.length === 0) {
+                showToast("Your cart is empty");
+                return;
+            }
+            const randomID = '#SHP-' + Math.floor(10000 + Math.random() * 90000);
+            document.getElementById('confirmed-order-id').innerText = randomID;
+            cart = [];
+            updateCartUI();
+            toggleView('order-confirmation');
+        }
+
+        // WISHLIST FUNCTIONALITY
+        function toggleWishlist(productId) {
+            const index = wishlist.indexOf(productId);
+            if (index > -1) {
+                wishlist.splice(index, 1);
+                showToast("Removed from wishlist");
+            } else {
+                wishlist.push(productId);
+                showToast("Saved to wishlist");
+            }
+
+            const badge = document.getElementById('wishlist-badge');
+            if (wishlist.length > 0) {
+                badge.innerText = wishlist.length;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+
+            renderFeaturedProducts();
+            renderCatalog();
+            renderWishlistTab();
+        }
+
+        function toggleWishlistModal() {
+            toggleView('customer-account');
+            switchAccountTab('wishlist');
+        }
+
+        function renderWishlistTab() {
+            const container = document.getElementById('account-wishlist-grid');
+            const wishedProds = products.filter(p => wishlist.includes(p.id));
+            if (wishedProds.length === 0) {
+                container.innerHTML = '<p class="text-xs text-slate-400 col-span-3">No saved items in wishlist.</p>';
+            } else {
+                container.innerHTML = wishedProds.map(p => createProductCardHTML(p)).join('');
+            }
+            lucide.createIcons();
+        }
+
+        // PRODUCT MODAL QUICK VIEW
+        function openProductModal(productId) {
+            const p = products.find(prod => prod.id === productId);
+            if (!p) return;
+
+            const modal = document.getElementById('product-modal');
+            const content = document.getElementById('product-modal-content');
+
+            content.innerHTML = `
+                <button onclick="closeProductModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-800">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="bg-stone-100 rounded aspect-square overflow-hidden">
+                        <img src="${p.image}" class="w-full h-full object-cover">
+                    </div>
+                    <div class="flex flex-col justify-between">
+                        <div>
+                            <span class="text-xs uppercase tracking-wider text-slate-400 font-semibold">${p.category}</span>
+                            <h2 class="text-xl font-semibold text-slate-900 mt-1">${p.name}</h2>
+                            <div class="flex items-center gap-1 mt-2 text-xs text-amber-500">
+                                <i data-lucide="star" class="w-4 h-4 fill-amber-400"></i>
+                                <span class="font-bold text-slate-800">${p.rating}</span>
+                                <span class="text-slate-400">(48 Reviews)</span>
+                            </div>
+                            <div class="text-2xl font-bold text-slate-950 mt-4">${formatIDR(p.price)}</div>
+                            <p class="text-xs text-slate-600 mt-4 leading-relaxed">${p.description}</p>
+                        </div>
+                        <div class="mt-8 space-y-3">
+                            <button onclick="addToCart(${p.id}); closeProductModal()" class="w-full bg-slate-950 text-white py-3 text-xs font-semibold uppercase tracking-wider hover:bg-slate-800 transition rounded">
+                                Add To Shopping Bag
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            modal.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeProductModal() {
+            document.getElementById('product-modal').classList.add('hidden');
+        }
+
+        // ACCOUNT TAB SWITCHER
+        function switchAccountTab(tab) {
+            document.getElementById('tab-content-orders').classList.add('hidden');
+            document.getElementById('tab-content-wishlist').classList.add('hidden');
+            document.getElementById('tab-content-profile').classList.add('hidden');
+
+            document.getElementById('tab-btn-orders').className = "pb-3 text-slate-500 hover:text-slate-900";
+            document.getElementById('tab-btn-wishlist').className = "pb-3 text-slate-500 hover:text-slate-900";
+            document.getElementById('tab-btn-profile').className = "pb-3 text-slate-500 hover:text-slate-900";
+
+            if (tab === 'orders') {
+                document.getElementById('tab-content-orders').classList.remove('hidden');
+                document.getElementById('tab-btn-orders').className = "pb-3 border-b-2 border-slate-950 text-slate-950 font-semibold";
+            } else if (tab === 'wishlist') {
+                document.getElementById('tab-content-wishlist').classList.remove('hidden');
+                document.getElementById('tab-btn-wishlist').className = "pb-3 border-b-2 border-slate-950 text-slate-950 font-semibold";
+                renderWishlistTab();
+            } else if (tab === 'profile') {
+                document.getElementById('tab-content-profile').classList.remove('hidden');
+                document.getElementById('tab-btn-profile').className = "pb-3 border-b-2 border-slate-950 text-slate-950 font-semibold";
+            }
+        }
+
+        // ADMIN INVENTORY MANAGEMENT
+        function renderAdminTable() {
+            const tbody = document.getElementById('admin-product-table-body');
+            tbody.innerHTML = products.map(p => `
+                <tr class="hover:bg-slate-800/40">
+                    <td class="p-3 flex items-center gap-3">
+                        <img src="${p.image}" class="w-8 h-8 rounded object-cover bg-slate-700">
+                        <span class="font-medium text-white">${p.name}</span>
+                    </td>
+                    <td class="p-3 text-slate-400">${p.category}</td>
+                    <td class="p-3 font-mono">${formatIDR(p.price)}</td>
+                    <td class="p-3 font-semibold ${p.stock < 5 ? 'text-amber-400' : 'text-slate-200'}">${p.stock} units</td>
+                    <td class="p-3">
+                        <span class="px-2 py-0.5 text-[10px] rounded ${p.stock > 0 ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-red-950 text-red-400 border border-red-800'}">
+                            ${p.stock > 0 ? 'In Stock' : 'Out of Stock'}
+                        </span>
+                    </td>
+                    <td class="p-3 text-right space-x-2">
+                        <button onclick="deleteProduct(${p.id})" class="text-red-400 hover:text-red-300">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function deleteProduct(id) {
+            products = products.filter(p => p.id !== id);
+            renderAdminTable();
+            renderCatalog();
+            renderFeaturedProducts();
+            showToast("Item deleted from inventory");
+        }
+
+        function openAddProductModal() {
+            document.getElementById('admin-add-modal').classList.remove('hidden');
+        }
+
+        function closeAddProductModal() {
+            document.getElementById('admin-add-modal').classList.add('hidden');
+        }
+
+        function saveNewProduct() {
+            const name = document.getElementById('new-prod-name').value;
+            const category = document.getElementById('new-prod-cat').value;
+            const price = parseFloat(document.getElementById('new-prod-price').value) || 250000;
+            const stock = parseInt(document.getElementById('new-prod-stock').value) || 10;
+
+            if (!name) return;
+
+            const newProd = {
+                id: Date.now(),
+                name,
+                category,
+                price,
+                stock,
+                rating: 5.0,
+                image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80",
+                description: "Newly added product item.",
+                isFeatured: false
+            };
+
+            products.push(newProd);
+            renderAdminTable();
+            renderCatalog();
+            closeAddProductModal();
+            showToast("New item added to inventory");
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+import { createRouter, createWebHistory } from 'vue-router';
+import Storefront from './views/Storefront.vue'; import ProductList from './views/ProductList.vue'; import ProductDetail from './views/ProductDetail.vue'; import Auth from './views/Auth.vue'; import Cart from './views/Cart.vue'; import Checkout from './views/Checkout.vue'; import Account from './views/Account.vue'; import Admin from './views/Admin.vue';
+export default createRouter({history:createWebHistory(),scrollBehavior:()=>({top:0}),routes:[{path:'/',component:Storefront},{path:'/products',component:ProductList},{path:'/products/:slug',component:ProductDetail},{path:'/login',component:Auth,props:{mode:'login'}},{path:'/register',component:Auth,props:{mode:'register'}},{path:'/cart',component:Cart},{path:'/checkout',component:Checkout},{path:'/account/:tab?',component:Account},{path:'/admin/:section?',component:Admin},{path:'/:pathMatch(.*)*',redirect:'/'}]});
+
