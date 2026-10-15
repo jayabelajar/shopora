@@ -6,7 +6,6 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
 import multer from 'multer';
-import pinoHttp from 'pino-http';
 import argon2 from 'argon2';
 import { PrismaClient, Role, PaymentStatus, FulfillmentStatus } from '@prisma/client';
 import { z } from 'zod';
@@ -18,7 +17,7 @@ const origin = process.env.WEB_ORIGIN ?? 'http://localhost:5173';
 const cookieName = process.env.SESSION_COOKIE_NAME ?? 'shopora_session';
 const oneWeek = 1000 * 60 * 60 * 24 * 7;
 app.set('trust proxy', 1);
-app.use(pinoHttp());
+app.use((req, _res, next) => { console.info(`${req.method} ${req.path}`); next(); });
 app.use(cors({ origin, credentials: true }));
 app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());
@@ -92,7 +91,17 @@ api.get('/admin/dashboard/sales',...requireAdmin,asyncRoute(async(_,res)=>respon
 api.get('/admin/products',...requireAdmin,asyncRoute(async(_,res)=>respond(res,serialize(await prisma.product.findMany({include:{category:true,images:true},orderBy:{createdAt:'desc'}})))));
 api.post('/admin/products',...requireAdmin,validate(productInput),asyncRoute(async(req,res)=>{const {imageUrl,...data}=req.body;const product=await prisma.product.create({data:{...data,slug:`${slugify(data.name)}-${crypto.randomBytes(2).toString('hex')}`,price:BigInt(data.price),images:imageUrl?{create:{imageUrl,isPrimary:true}}:undefined}});respond(res,serialize(product),201);}));
 api.get('/admin/products/:id',...requireAdmin,asyncRoute(async(req,res)=>{const p=await prisma.product.findUnique({where:{id:req.params.id},include:{images:true,category:true}});return p?respond(res,serialize(p)):fail(res,404,'PRODUCT_NOT_FOUND','Product was not found');}));
-api.patch('/admin/products/:id',...requireAdmin,validate(productInput.partial()),asyncRoute(async(req,res)=>{const {imageUrl,...data}=req.body;const r=await prisma.product.updateMany({where:{id:req.params.id},data:{...data,...(data.price!==undefined?{price:BigInt(data.price)}:{)}}});if(!r.count)return fail(res,404,'PRODUCT_NOT_FOUND','Product was not found');if(imageUrl){const updated=await prisma.productImage.updateMany({where:{productId:req.params.id,isPrimary:true},data:{imageUrl}});if(!updated.count)await prisma.productImage.create({data:{productId:req.params.id,imageUrl,isPrimary:true}});}return respond(res,serialize(await prisma.product.findUnique({where:{id:req.params.id},include:{images:true,category:true}}));}));
+api.patch('/admin/products/:id', ...requireAdmin, validate(productInput.partial()), asyncRoute(async (req, res) => {
+  const { imageUrl, ...data } = req.body;
+  const result = await prisma.product.updateMany({ where: { id: req.params.id }, data: { ...data, ...(data.price !== undefined ? { price: BigInt(data.price) } : {}) } });
+  if (!result.count) return fail(res, 404, 'PRODUCT_NOT_FOUND', 'Product was not found');
+  if (imageUrl) {
+    const updated = await prisma.productImage.updateMany({ where: { productId: req.params.id, isPrimary: true }, data: { imageUrl } });
+    if (!updated.count) await prisma.productImage.create({ data: { productId: req.params.id, imageUrl, isPrimary: true } });
+  }
+  const product = await prisma.product.findUnique({ where: { id: req.params.id }, include: { images: true, category: true } });
+  return respond(res, serialize(product));
+}));
 api.delete('/admin/products/:id',...requireAdmin,asyncRoute(async(req,res)=>{const r=await prisma.product.updateMany({where:{id:req.params.id},data:{isActive:false}});return r.count?respond(res,{},200,'Product archived'):fail(res,404,'PRODUCT_NOT_FOUND','Product was not found');}));
 api.get('/admin/categories',...requireAdmin,asyncRoute(async(_,res)=>respond(res,await prisma.category.findMany({include:{_count:{select:{products:true}}},orderBy:{name:'asc'}}))));
 api.post('/admin/categories',...requireAdmin,validate(z.object({name:z.string().min(2).max(150)})),asyncRoute(async(req,res)=>respond(res,await prisma.category.create({data:{name:req.body.name,slug:slugify(req.body.name)}}),201)));
