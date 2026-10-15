@@ -1,6 +1,6 @@
 # Shopora REST API
 
-Base URL: `/api/v1`. Semua respons memakai bentuk `{ success, data, message }` atau `{ success, error }`. Endpoint privat memakai cookie session HTTP-only. Mutasi dari browser mengirim header `X-CSRF-Token` yang sama dengan cookie `shopora_csrf`.
+Base URL: `/api/v1`. Semua respons memakai bentuk `{ success, data, message }` atau `{ success, error }`. Endpoint privat memakai cookie session HTTP-only. Mutasi dari browser mengirim header `X-CSRF-Token` yang sama dengan cookie `shopora_csrf`. `WEB_ORIGIN` menerima satu atau beberapa origin frontend yang dipisahkan koma; deployment HTTPS lintas-site perlu `COOKIE_SAME_SITE=none`.
 
 ## Public and authentication
 

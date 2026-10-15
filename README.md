@@ -26,6 +26,8 @@ npm run db:seed
 npm run dev
 ```
 
+`npm run dev` mengakses API melalui proxy Vite pada origin yang sama. Untuk deployment terpisah, isi `VITE_API_URL` dengan URL API, tambahkan origin frontend ke `WEB_ORIGIN` (pisahkan dengan koma bila lebih dari satu), dan gunakan `COOKIE_SAME_SITE=none` pada koneksi HTTPS lintas-site.
+
 - Storefront: `http://localhost:5173`
 - REST API: `http://localhost:3000/api/v1`
 - Health check: `http://localhost:3000/health`
