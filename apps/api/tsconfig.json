@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
     "target": "ES2022", "module": "NodeNext", "moduleResolution": "NodeNext",
-    "outDir": "dist", "strict": true, "esModuleInterop": true, "skipLibCheck": true, "noCheck": true
+    "rootDir": "src", "outDir": "dist", "strict": true, "esModuleInterop": true, "skipLibCheck": true
   },
-  "include": ["src", "prisma"]
+  "include": ["src"],
+  "exclude": ["src/**/*.test.ts"]
 }
