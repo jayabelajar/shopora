@@ -10,6 +10,8 @@ import OrderDetail from './views/OrderDetail.vue';
 import OrderSuccess from './views/OrderSuccess.vue';
 import Admin from './views/Admin.vue';
 import NotFound from './views/NotFound.vue';
+import Wishlist from './views/Wishlist.vue';
+import AdminLogin from './views/AdminLogin.vue';
 import { useSession } from './stores';
 
 const router = createRouter({
@@ -22,6 +24,7 @@ const router = createRouter({
     {path:'/login',component:Auth,props:{mode:'login'},meta:{guest:true}},
     {path:'/register',component:Auth,props:{mode:'register'},meta:{guest:true}},
     {path:'/cart',component:Cart,meta:{requiresAuth:true}},
+    {path:'/wishlist',component:Wishlist,meta:{requiresAuth:true}},
     {path:'/checkout',component:Checkout,meta:{requiresAuth:true}},
     {path:'/checkout/success/:orderNumber',component:OrderSuccess,meta:{requiresAuth:true}},
     {path:'/account',redirect:'/account/orders',meta:{requiresAuth:true}},
@@ -29,6 +32,7 @@ const router = createRouter({
     {path:'/account/orders/:id',component:OrderDetail,meta:{requiresAuth:true}},
     {path:'/account/addresses',component:Account,props:{tab:'addresses'},meta:{requiresAuth:true}},
     {path:'/account/profile',component:Account,props:{tab:'profile'},meta:{requiresAuth:true}},
+    {path:'/admin/login',component:AdminLogin},
     {path:'/admin',component:Admin,props:{section:'overview'},meta:{requiresAdmin:true}},
     {path:'/admin/products',component:Admin,props:{section:'products'},meta:{requiresAdmin:true}},
     {path:'/admin/products/new',component:Admin,props:{section:'product-form'},meta:{requiresAdmin:true}},
@@ -45,7 +49,7 @@ router.beforeEach(async to => {
   await session.load();
   if (to.meta.guest && session.user) return session.user.role === 'ADMIN' ? '/admin' : '/';
   if ((to.meta.requiresAuth || to.meta.requiresAdmin) && !session.user) {
-    return {path:'/login',query:{redirect:to.fullPath}};
+    return {path:to.meta.requiresAdmin?'/admin/login':'/login',query:{redirect:to.fullPath}};
   }
   if (to.meta.requiresAdmin && session.user?.role !== 'ADMIN') return '/';
 });

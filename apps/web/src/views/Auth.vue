@@ -3,13 +3,14 @@ import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ArrowLeft, Eye, EyeOff, LockKeyhole, ShieldCheck } from 'lucide-vue-next';
 import { api } from '../api';
-import { useSession, useCart, type User } from '../stores';
+import { useSession, useCart, useWishlist, type User } from '../stores';
 
 const props = defineProps<{mode:'login'|'register'}>();
 const router = useRouter();
 const route = useRoute();
 const session = useSession();
 const cart = useCart();
+const wishlist = useWishlist();
 const name = ref('');
 const email = ref('');
 const password = ref('');
@@ -27,7 +28,7 @@ async function submit(){
     const body=isLogin.value?{email:email.value.trim().toLowerCase(),password:password.value}:{name:name.value.trim(),email:email.value.trim().toLowerCase(),password:password.value};
     session.user=await api<User>(`/auth/${isLogin.value?'login':'register'}`,{method:'POST',body:JSON.stringify(body)});
     session.ready=true;
-    await cart.load();
+    await Promise.all([cart.load(),wishlist.load()]);
     const redirect=typeof route.query.redirect==='string'&&route.query.redirect.startsWith('/')?route.query.redirect:'';
     await router.replace(redirect||(session.user.role==='ADMIN'?'/admin':'/'));
   }catch(e:any){error.value=e.message}

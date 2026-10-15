@@ -1,20 +1,51 @@
 # Shopora
 
-Shopora adalah aplikasi e-commerce single-vendor full-stack berdasarkan `docs/PRD.MD`. Storefront mengikuti arah visual `docs/UI.HTML`, sedangkan admin menggunakan workspace privat yang terpisah dari UI publik.
+Shopora adalah aplikasi e-commerce single-vendor full-stack dengan storefront responsif dan management portal terpisah. Aplikasi mencakup alur belanja dari katalog hingga fulfillment, menggunakan backend sebagai sumber kebenaran untuk harga, stok, total transaksi, dan otorisasi.
 
-## Fitur MVP
+## Highlights
 
-- Register, login, logout, profile, HTTP-only session, CSRF/origin protection, dan role-based access.
-- Katalog dengan search, kategori, rentang harga, stok, sorting, dan pagination.
-- Detail produk, persistent cart, cart drawer, quantity/stock validation.
-- CRUD alamat, checkout preview, transactional checkout, idempotency, dan snapshot alamat.
-- Pembayaran demo sukses/gagal, pembatalan idempoten, pemulihan stok, riwayat dan detail order.
-- Admin overview, revenue, recent orders, low-stock alerts, product/category CRUD, image upload, inventory, dan fulfillment workflow.
-- Responsive layout mulai 360px, loading/error/empty states, migration, 1.000 seeded products, unit tests, dan CI.
+- Autentikasi berbasis HTTP-only session cookie, Argon2id, CSRF protection, rate limiting, dan role-based access control.
+- Katalog 1.000 produk dengan pencarian, kategori, harga, stok, sorting, pagination, serta detail produk.
+- Wishlist persisten, shopping cart persisten, pengelolaan alamat, dan profil customer.
+- Checkout transaction-safe dengan validasi stok atomik, snapshot alamat, dan idempotency key.
+- Simulasi pembayaran sukses/gagal, pembatalan idempoten, serta pemulihan stok tepat sekali.
+- Riwayat dan detail order customer dengan status payment dan fulfillment terpisah.
+- Admin portal untuk dashboard, product CRUD/archive, category CRUD/archive, upload gambar, inventory, order detail, dan fulfillment workflow.
+- UI responsive mulai 360px berdasarkan referensi visual [`docs/UI.HTML`](docs/UI.HTML).
+- Prisma migrations, deterministic demo seed, automated tests, TypeScript build, dan GitHub Actions CI.
 
-## Menjalankan lokal
+## Technology
 
-Prasyarat: Node.js 22+, npm, Docker Desktop.
+| Layer | Technology |
+|---|---|
+| Frontend | Vue 3, TypeScript, Vite, Vue Router, Pinia, Lucide |
+| Backend | Node.js, Express, TypeScript, Zod, Argon2id |
+| Database | MySQL 8, Prisma ORM |
+| Testing | Vitest |
+| Infrastructure | npm Workspaces, Docker Compose, GitHub Actions |
+
+## Architecture
+
+```text
+Browser
+  └─ Vue 3 SPA
+       └─ /api/v1 (HTTP + JSON)
+            └─ Express modular monolith
+                 └─ Prisma ORM
+                      └─ MySQL 8
+```
+
+Frontend menggunakan proxy same-origin saat development. Backend menghitung ulang harga dan total, memvalidasi ownership, dan melakukan checkout di dalam database transaction.
+
+## Local setup
+
+Prasyarat:
+
+- Node.js 22 atau lebih baru
+- npm
+- Docker Desktop, atau instalasi MySQL 8 lokal
+
+### Menggunakan Docker Desktop
 
 ```powershell
 Copy-Item apps/api/.env.example apps/api/.env
@@ -26,28 +57,105 @@ npm run db:seed
 npm run dev
 ```
 
-`npm run dev` mengakses API melalui proxy Vite pada origin yang sama. Untuk deployment terpisah, isi `VITE_API_URL` dengan URL API, tambahkan origin frontend ke `WEB_ORIGIN` (pisahkan dengan koma bila lebih dari satu), dan gunakan `COOKIE_SAME_SITE=none` pada koneksi HTTPS lintas-site.
+### Menggunakan MySQL lokal
 
-- Storefront: `http://localhost:5173`
-- REST API: `http://localhost:3000/api/v1`
-- Health check: `http://localhost:3000/health`
+Buat database dan user sesuai `DATABASE_URL` di `apps/api/.env`, lalu jalankan:
 
-Demo admin: `admin@shopora.test` / `Admin123!`  
-Demo customer: `customer@shopora.test` / `Customer123!`
+```powershell
+npm install
+npm run db:generate
+npm run db:migrate
+npm run db:seed
+npm run dev
+```
 
-## Verifikasi
+Jangan melewati `db:migrate` dan `db:seed`. API dapat tersambung ke MySQL tetapi tetap gagal mengakses login atau produk apabila tabel belum dibuat.
+
+## URLs
+
+| Service | URL |
+|---|---|
+| Storefront | `http://localhost:5173` |
+| Customer login | `http://localhost:5173/login` |
+| Admin login | `http://localhost:5173/admin/login` |
+| REST API | `http://localhost:3000/api/v1` |
+| Health check | `http://localhost:3000/health` |
+
+## Demo accounts
+
+| Role | Email | Password |
+|---|---|---|
+| Administrator | `admin@shopora.test` | `Admin123!` |
+| Customer | `customer@shopora.test` | `Customer123!` |
+| Customer | `naufal@shopora.test` | `Customer123!` |
+
+Seed juga menyediakan kategori, 1.000 produk, alamat customer, isi cart, wishlist, order paid/delivered, dan order pending untuk demonstrasi dashboard.
+
+## Environment configuration
+
+```dotenv
+DATABASE_URL="mysql://shopora:shopora@localhost:3306/shopora"
+PORT=3000
+WEB_ORIGIN="http://localhost:5173"
+SESSION_COOKIE_NAME="shopora_session"
+COOKIE_SAME_SITE="lax"
+DEMO_MODE=true
+```
+
+Untuk deployment frontend/backend lintas-site melalui HTTPS:
+
+- isi `VITE_API_URL` dengan URL API;
+- tambahkan seluruh origin frontend ke `WEB_ORIGIN`, dipisahkan koma;
+- gunakan `COOKIE_SAME_SITE=none`.
+
+## Commands
+
+| Command | Description |
+|---|---|
+| `npm run dev` | Menjalankan frontend dan API |
+| `npm test` | Menjalankan seluruh test |
+| `npm run build` | Typecheck dan production build |
+| `npm run db:generate` | Generate Prisma Client |
+| `npm run db:migrate` | Menerapkan migration development |
+| `npm run db:seed` | Membuat deterministic demo data |
+
+## Critical business rules
+
+- Customer hanya dapat mengakses cart, alamat, wishlist, dan order miliknya.
+- Endpoint admin hanya menerima session dengan role `ADMIN`.
+- Produk/kategori yang diarsipkan tidak tampil di storefront.
+- Client tidak dapat menentukan harga atau total order.
+- Checkout mencegah stok negatif dan duplicate order.
+- Payment failure dan cancellation hanya mengembalikan stok satu kali.
+- Fulfillment mengikuti `PENDING → PROCESSING → SHIPPED → DELIVERED` dan hanya berlaku untuk order paid.
+
+## Verification
 
 ```powershell
 npm test
 npm run build
+curl.exe http://localhost:3000/health
 ```
 
-## Arsitektur dan dokumentasi
+Respons health yang sehat:
 
-`Vue 3 SPA → Express REST API → Prisma ORM → MySQL 8`
+```json
+{"success":true,"data":{"status":"ok","database":"connected"}}
+```
 
-- [PRD](docs/PRD.MD)
+## Documentation
+
+- [Product requirements](docs/PRD.MD)
 - [REST API](docs/API.md)
 - [UI reference](docs/UI.HTML)
 
-Semua harga disimpan sebagai integer IDR. Backend menjadi sumber kebenaran untuk harga, stok, total, otorisasi, dan transisi order.
+## Security notes
+
+- Jangan commit file `.env` atau credentials production.
+- `DEMO_MODE` harus dinonaktifkan di luar environment demonstrasi.
+- Gunakan HTTPS dan secure cookies pada production.
+- Upload dibatasi ke JPEG, PNG, dan WebP dengan ukuran maksimum 5 MB.
+
+## License
+
+Portfolio and educational project. Review and add an explicit license before redistributing.

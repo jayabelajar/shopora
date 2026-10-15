@@ -23,6 +23,9 @@ Product query parameters: `search`, `category`, `minPrice`, `maxPrice`, `inStock
 | GET | `/cart` | Persistent cart |
 | POST | `/cart/items` | Add product and quantity |
 | PATCH/DELETE | `/cart/items/:id` | Update/remove owned cart item |
+| GET | `/wishlist` | List owned wishlist items |
+| POST | `/wishlist/items` | Add an active product to wishlist |
+| DELETE | `/wishlist/items/:productId` | Remove an owned wishlist item |
 | GET/POST | `/addresses` | List/create owned addresses |
 | PATCH/DELETE | `/addresses/:id` | Update/delete owned address |
 | POST | `/checkout/preview` | Validate cart/address and calculate totals |
