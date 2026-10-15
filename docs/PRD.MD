@@ -931,7 +931,7 @@ NFR-001: Responsive mulai dari lebar 360px.
 
 NFR-002: Form dan navigasi mendukung aksesibilitas dasar.
 
-NFR-003: Katalog mendukung minimal 1.000 seeded products.
+NFR-003: Demo lokal menyediakan 20 seeded products yang representatif; katalog tetap menggunakan pagination agar dapat menangani pertumbuhan data.
 
 NFR-004: Target p95 API latency di bawah 500ms untuk common read endpoints pada kondisi pengujian yang terdokumentasi.
 
@@ -1309,4 +1309,3 @@ The project must demonstrate:
 - Production-minded deployment
 
 END OF PRD
-  

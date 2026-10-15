@@ -5,7 +5,7 @@ Shopora adalah aplikasi e-commerce single-vendor full-stack dengan storefront re
 ## Highlights
 
 - Autentikasi berbasis HTTP-only session cookie, Argon2id, CSRF protection, rate limiting, dan role-based access control.
-- Katalog 1.000 produk dengan pencarian, kategori, harga, stok, sorting, pagination, serta detail produk.
+- Katalog demo 20 produk dengan pencarian, kategori, harga, stok, sorting, pagination, serta detail produk.
 - Wishlist persisten, shopping cart persisten, pengelolaan alamat, dan profil customer.
 - Checkout transaction-safe dengan validasi stok atomik, snapshot alamat, dan idempotency key.
 - Simulasi pembayaran sukses/gagal, pembatalan idempoten, serta pemulihan stok tepat sekali.
@@ -89,7 +89,7 @@ Jangan melewati `db:migrate` dan `db:seed`. API dapat tersambung ke MySQL tetapi
 | Customer | `customer@shopora.test` | `Customer123!` |
 | Customer | `naufal@shopora.test` | `Customer123!` |
 
-Seed juga menyediakan kategori, 1.000 produk, alamat customer, isi cart, wishlist, order paid/delivered, dan order pending untuk demonstrasi dashboard.
+Seed menyediakan tepat 20 produk, kategori, alamat customer, isi cart, wishlist, order paid/delivered, dan order pending untuk demonstrasi dashboard.
 
 ## Environment configuration
 
